@@ -53,5 +53,5 @@ def extract_blobs(img, img_proc_pipeline = pipeline2, frame_selection = frame_se
         fragment[~mask] = params.get('pixel_mask',np.nan)
         fragment /= blob_num # stupid work around since saving to sql doesn't really work with the more obvious way 
 
-        fragments.append(((xmin,ymin), fragment))
+        fragments.append(((xmin*xblocksize,ymin*yblocksize), fragment))
     return fragments
