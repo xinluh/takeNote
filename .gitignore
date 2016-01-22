@@ -1,2 +1,6 @@
 *.pyc
 .ipynb_checkpoints/*
+webapp/static/css/bootstrap*
+webapp/static/js/bootstrap*
+webapp/static/js/npm.js
+webapp/static/fonts/*
