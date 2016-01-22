@@ -1,6 +1,7 @@
 import cv2
 import pafy
 import numpy as np
+import types
 
 #from StringIO import StringIO
 import urllib
@@ -19,6 +20,9 @@ def get_frames_from_stream(url, frame_rate_per_sec = 1, gray_scale=True):
     while(True):
         #print cap.get(cv2.cv.CV_CAP_PROP_POS_MSEC)
         ret, frame = cap.read()
+        if type(frame) == types.NoneType:
+            raise StopIteration
+            
         frames_read += 1
         frame = frame.astype(np.float32)
         if ret:
