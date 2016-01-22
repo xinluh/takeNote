@@ -42,7 +42,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">TakeNote: CliffNotes for Video Lectures</a>
+          <a class="navbar-brand" href="#">take<i>Note</i></a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
         </div><!--/.navbar-collapse -->
@@ -52,32 +52,56 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
-        <!-- <h1>Hello, world!</h1> -->
-        <!-- <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p> -->
 
 		<form class="form-signin">
-        <h2 class="form-signin-heading">Link to a YouTube lecture (blackboard only!)</h2>
+		<h1> take<i>Note</i> </h1>
+		<h2> CliffNote for Video Lectures </h2>
+		<br/><br/>
+        <h4 class="form-signin-heading">Link to a YouTube lecture (blackboard only!)</h4>
         <label for="videoUrl" class="sr-only">Youtube url</label>
-        <input type="text" id="videoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=u--DXkNp4Qs" required autofocus value="https://www.youtube.com/watch?v=u--DXkNp4Qs">
+        <input type="text" id="videoUrl" class="form-control" spellcheck="false"
+			   placeholder="https://www.youtube.com/watch?v=u--DXkNp4Qs"
+			   required autofocus value="https://www.youtube.com/watch?v=XsqtPhra2f0">
       </form>
 		<br>
-        <p><a class="btn btn-primary btn-lg" role="button" id="gobtn">CliffNote It! &raquo;</a></p>
+        <p><a class="btn btn-primary btn-lg" role="button" id="gobtn">CliffNote It! &raquo;</a>
+		   <a class="btn btn-primary btn-lg" role="button" id="stopbtn">Stop processing</a>
+		</p>
       </div>
     </div>
 
-    <div class="container">
+    <div id="video" class="container">
+	  <div id="video-container">
+	  <div>
+		<h1 id="video-title"></h1>
+		<div id="video-author"></div>
+		<p><div id="video-desc"></div>
+	  </div>
+	  <p>
+	  <div class="progress">
+		<div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
+			 aria-valuemin="0" aria-valuemax="100" style="width:0%"> 0% </div>
+	  </div>
       <!-- Example row of columns -->
       <div class="row">
         <div id="col1" class="col-md-4">
+		  Last blackboard addition<span id="current-img-time"></span>:
+		  <p><p>
+		  <p><img id="current-frame" height="150"/>	
+		  <p>
+		  <img id="current-img"/>	
         </div>
-        <div class="col-md-4">
+        <div class="col-md-8">
+		  <div id="blackboard">
+			<canvas id="canvas" width="640" height="320"></canvas>
+			<div id="canvas-hightlight"></div>
+		  </div>
        </div>
-        <div class="col-md-4">
-        </div>
+
       </div>
 
+	  </div>
       <hr>
-
       <footer>
         <p>Xinlu Huang 2016</p>
       </footer>

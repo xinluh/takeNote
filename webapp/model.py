@@ -24,4 +24,8 @@ def predict(img, model = 'model.pickle'):
     with open(model,'rb') as f: clf = pickle.load(f)
     return clf.predict([calc_blob_property(img, props_to_use)])[0]
 
+def predict_proba(img, model = 'model.pickle'):
+    with open(model,'rb') as f: clf = pickle.load(f)
+    return clf.predict_proba([calc_blob_property(img, props_to_use)])[0][1] # return the proba of the True class; todo check classes from clf.classes_
+
 #predict(bb[0],model='webapp/model.pickle')

@@ -1,8 +1,10 @@
 from webapp import app
-import pafy
+import time
+import json
+import urllib
 from flask import render_template, request,jsonify,Response
 from sqlalchemy import create_engine
-import time
+import pafy
 import utils, img_proc_utils, model
 
 @app.route('/')
@@ -10,65 +12,56 @@ import utils, img_proc_utils, model
 def index():
     return render_template('main.html')
 
-@app.route('/getimages',methods=['POST'])
-def get_images():
-    engine_url = 'postgres://postgres:postgres@localhost/fragments_db'
-    engine = create_engine(engine_url)
-    
-    url = request.form['url']
-    video = pafy.new(url)
-    streams = [s for s in video.streams if s.extension == 'mp4' and s.dimensions[0]==640]
-    if len(streams) == 0: return jsonify({'success':False})
-    youtube_link = streams[0].url
-    return jsonify({'success':True, 'url':youtube_link})
-
-@app.route('/stream')
-def stream():
-    return Response(event_stream(), mimetype="text/event-stream")
-
 @app.route('/getImageStream')
-def get_image_stream():
-    url = 'https://www.youtube.com/watch?v=XsqtPhra2f0'
+@app.route('/getImageStream/<path:url>')
+def get_image_stream(url=None):
+    if not url: # test
+        url = 'https://www.youtube.com/watch?v=XsqtPhra2f0'
+    else:
+        url = urllib.unquote_plus(url)
+    print url
     video = pafy.new(url)
     stream = utils.get_youtube_stream_url(video)
     print stream
     if not stream:
         return 'error'
-    return Response(stream_frames(stream), mimetype="text/event-stream")
+    return Response(stream_frames(stream, video), mimetype="text/event-stream")
     
-    # return jsonify({'success':True, 'url':youtube_link})
-    
-def stream_frames(stream):
-    
+def stream_frames(stream, pafy_video = None):
+    # stream = '/windows/mit/rubakov.mp4' # testing
+    if pafy_video:
+        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': pafy_video.length,
+                                                           'video_title': pafy_video.title,
+                                                           'video_desc': pafy_video.description,
+                                                           'video_author': pafy_video.author})
+    else: 
+        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000})
+        
     try:
         base_frame_sec = -1
         base_frame = None
-        for sec, frame in utils.get_frames_from_stream(stream,2):
-            # print 'data: %s\n\n' % utils.img_to_base64_bytes(frame)
-            print sec
+        for sec, frame in utils.get_frames_from_stream(stream,5):
+            if int(sec % 20) == 0:
+                yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(sec)})
             if base_frame_sec < 0:
                 base_frame = frame
                 base_frame_sec = sec
                 continue
             for (xmin,ymin), blob in img_proc_utils.extract_blobs(frame-base_frame):
-                if model.predict(blob, model='webapp/model.pickle'):
-                    print xmin, ymin
-                    yield 'data: %s\n\n' % utils.img_to_base64_bytes(blob)
+                proba = model.predict_proba(blob, model='webapp/model.pickle')
+                if proba > 0.2:
+                    print sec, xmin, ymin
+                    yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(blob), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
+                                                 'sec': int(sec),
+                                                 'proba': proba,
+                                                 'left_corner': [xmin,ymin],
+                                                 'size': blob.shape,
+                                                 'frame': utils.img_to_base64_bytes(frame)
+                                             })
                     base_frame = frame
                     base_frame_sec = sec
-                elif int(sec - base_frame_sec)%100 == 0:
-                    yield 'data: %s\n\n' % utils.img_to_base64_bytes(blob)
-            #yield 'data: %s\n\n' % utils.img_to_base64_bytes(frame)
     except StopIteration:
-            yield 'data: end'
-            raise StopIteration
+        print 'onend!'
+        yield 'event: onend\ndata: end\n\n'
+        raise StopIteration
 
-def event_stream():
-    import time
-    i = 0
-    while True:
-        time.sleep(3)
-        i+= 1
-        print i
-        yield 'data: %s\n\n'%i
-        if i > 20: raise StopIteration
