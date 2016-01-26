@@ -19,27 +19,33 @@ def get_image_stream(url=None):
         url = 'https://www.youtube.com/watch?v=XsqtPhra2f0'
     else:
         url = urllib.unquote_plus(url)
-    print url
-    video = pafy.new(url)
-    stream = utils.get_youtube_stream_url(video)
+    print 'got url', url
+    if url.startswith('file://'):
+        stream = url.replace('file://','')
+        video = None
+    else:
+        video = pafy.new(url)
+        stream = utils.get_youtube_stream_url(video)
     print stream
     if not stream:
         return 'error'
     return Response(stream_frames(stream, video), mimetype="text/event-stream")
     
 def stream_frames(stream, pafy_video = None):
+    base_frame_sec = -1
+    base_frame = None
+    test = (pafy_video == None)
     # stream = '/windows/mit/rubakov.mp4' # testing
-    if pafy_video:
-        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': pafy_video.length,
-                                                           'video_title': pafy_video.title,
-                                                           'video_desc': pafy_video.description,
-                                                           'video_author': pafy_video.author})
-    else: 
-        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000})
-        
+    if base_frame < 0:
+        if pafy_video:
+            yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': pafy_video.length,
+                                                               'video_title': pafy_video.title,
+                                                               # 'video_desc': pafy_video.description,
+                                                               'video_author': pafy_video.author})
+        else: 
+            yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000})
+
     try:
-        base_frame_sec = -1
-        base_frame = None
         for sec, frame in utils.get_frames_from_stream(stream,5):
             if int(sec % 20) == 0:
                 yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(sec)})
@@ -49,7 +55,7 @@ def stream_frames(stream, pafy_video = None):
                 continue
             for (xmin,ymin), blob in img_proc_utils.extract_blobs(frame-base_frame):
                 proba = model.predict_proba(blob, model='webapp/model.pickle')
-                if proba > 0.2:
+                if test or proba > 0.2:
                     print sec, xmin, ymin
                     yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(blob), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
                                                  'sec': int(sec),
@@ -60,6 +66,8 @@ def stream_frames(stream, pafy_video = None):
                                              })
                     base_frame = frame
                     base_frame_sec = sec
+            if test: time.sleep(3)
+
     except StopIteration:
         print 'onend!'
         yield 'event: onend\ndata: end\n\n'
