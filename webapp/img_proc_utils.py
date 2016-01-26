@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage, misc
 from functools import reduce
-from skimage.filters import threshold_otsu
+from skimage.filters import threshold_otsu, gaussian_filter
 
 def downsample(img, (blocksizex,blocksizey),estimator=np.nanmean, return_downsized=False):
     xs,ys = img.shape
@@ -12,14 +12,26 @@ def downsample(img, (blocksizex,blocksizey),estimator=np.nanmean, return_downsiz
     if return_downsized: return diff
     x,y = np.ogrid[:xs,:ys]
     return diff[x/blocksizex,y/blocksizey]
+    
+def thresholding_on_gaussian_mean(img, params):
+    img_ubyte = img_as_float(img.astype(uint8))
+    gaussian = gaussian_filter(img_ubyte, params.get('gaussian_sigma',3))
+    threshold1 = np.mean(gaussian)
+    return img_ubyte*(gaussian>threshold1)
+    
+params = {'blocksize':(10,10), 'min_blob_size':1, 'max_blob_fraction':1/3.,'pixel_mask':np.nan,'gaussian_sigma':3}
 
-params = {'blocksize':(20,20), 'min_blob_size':1, 'max_blob_fraction':1/3.,'pixel_mask':np.nan}
 
 pipeline2 = [lambda x, params: x*(x>0), # take advantage that addition on blackboard are white
              lambda x, params: x*(x>threshold_otsu(x)), 
              lambda x, params: abs(downsample(x, params['blocksize'], return_downsized=True)),
              lambda x, params: ndimage.grey_closing(x, size=(2, 2), structure=np.ones((2,2))), # make blobs more regular
              #lambda x, params: x > params['threshold']
+            ]
+pipeline3 = [lambda x, params: x*(x>0), # take advantage that addition on blackboard are white
+             thresholding_on_gaussian_mean, 
+             lambda x, params: abs(downsample(x, params['blocksize'], return_downsized=True)),
+             lambda x, params: ndimage.grey_closing(x, size=(2, 2), structure=np.ones((2,2))), # make blobs more regular
             ]
 
 def frame_selection(img_processed, blobs, nblobs, params): 
@@ -29,10 +41,13 @@ def frame_selection(img_processed, blobs, nblobs, params):
 def blob_selection(blobs, nb, params):
     return blobs[blobs==nb].size > params['min_blob_size'] # only select blob larger than 1 pic
     
-def extract_blobs(img, img_proc_pipeline = pipeline2, frame_selection = frame_selection,
-                  blob_selection = blob_selection, params = params, orig_img = None):
+def extract_blobs(img, img_proc_pipeline = pipeline3, frame_selection = frame_selection,
+                  blob_selection = blob_selection, params = params, orig_img = None, debug=False):
     img_processed = reduce(lambda x, func: func(x, params), [img] + img_proc_pipeline) if img_proc_pipeline else img
-    blobs, nblobs = ndimage.label(img_processed,structure=np.ones((3,3)))    
+    blobs, nblobs = ndimage.label(img_processed,structure=np.ones((3,3)))
+    if debug:
+        return [((n,n),reduce(lambda x, func: func(x, params), [img] + img_proc_pipeline[:n])) for n in xrange(len(img_proc_pipeline))] + [((0,0),blobs)]
+
     if frame_selection and not frame_selection(img_processed, blobs,nblobs,params): return []    
     fragments = []
     if orig_img == None: orig_img = img
