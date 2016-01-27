@@ -4,7 +4,7 @@ $(document).ready(function() {
   var source = null;
   $('#gobtn').click(function() {
 	  $('#video-container').show();
-	  location.href = "#video";
+	  location.href = "#video-container";
 	  $("#video-title").html("Loading video...");
 
       source = new EventSource('/getImageStream/'+encodeURIComponent($("#videoUrl").val()));
@@ -24,7 +24,6 @@ $(document).ready(function() {
   });
 
   var current_video_length = 0;
-  // var source = new EventSource('/getImageStream');
   
   function sec_to_time_string(sec) {
 	    var hour = Math.floor(sec/60/60);
@@ -33,29 +32,48 @@ $(document).ready(function() {
 	    return (hour < 10 ? "0"+ hour : hour)+ ":"+ (min < 10 ? "0" + min : min) + ":" + (second < 10 ? "0" + second : second)
   }
 
+  $('#blackboard').on('click', '.fragment', function() {
+      alert('This goes to yt link at sec '+$(this).attr('data-framesec'));
+  });
+  $('#gallery').on('click', '.fragment', function() {
+      alert('This goes to yt link at sec '+$(this).attr('data-framesec'));
+  });
+  $('#gallery').on('mouseenter mouseleave', '.fragment', function() {
+	  var sec = $(this).attr('data-framesec');
+	  $('#blackboard').find('[data-framesec="'+ sec + '"]').toggleClass('fragment-hover');
+  });
+
   var eventsource_onmessage = function (event) {
 	    // console.log(event.data);
 	    var data = JSON.parse(event.data);
 	    // console.log(data.sec);
 	    var img = "data:image/png;base64,"+data.img;
 	    var frame = "data:image/png;base64,"+data.frame;
-        // $('#col1').append(`<img style="padding:10px" src="${img}" title="${title}"/>`)
+	    var title = data.sec + " " + data.proba;
+	    var time = sec_to_time_string(data.sec);
+        //$('#col1').append(`<img style="padding:10px" src="${img}" title="${title}"/>`)
+	    if (data.size[1]*data.size[0] > 600) {
+			$('#gallery').append(`<li class="span2 fragment"  data-framesec="${data.sec}"> <a class="thumbnail" ><img src="${img}" alt="" /></a>${time}</li>`);
+		}
+
+	    $('#blackboard').append(`<div class="fragment" data-framesec="${data.sec}" style="width:${data.size[1]+'px'};height:${data.size[0]+'px'};margin-top:${data.left_corner[0]+'px'};margin-left:${data.left_corner[1]+'px'}"><img src="${img}" alt="" /><span>${time}</span></div>`)
+
 	    $('#current-img').attr('src', img).attr('title', data.proba)
 	    $('#current-frame').attr('src', frame).attr('title', data.proba)
 
-	    $('#current-img-time').html(' at ' + sec_to_time_string(data.sec))
+	    $('#current-img-time').html(' at ' + time)
 
-	    var ctx = $('#canvas').get(0).getContext("2d");
-	    var image = new Image();
-	    image.onload = function() {
-	   	  ctx.drawImage(image,data.left_corner[1],data.left_corner[0]);
-	    };
-	    image.src = img
-	    $('#canvas-hightlight').css('width',data.size[1]+'px')
-	    $('#canvas-hightlight').css('height', data.size[0]+"px")
-	    $('#canvas-hightlight').css('margin-left', data.left_corner[1]+"px")
-	    $('#canvas-hightlight').css('margin-top', data.left_corner[0]+"px")
-	    $('#canvas-hightlight').css('visibility', 'visible')
+	    // var ctx = $('#canvas').get(0).getContext("2d");
+	    // var image = new Image();
+	    // image.onload = function() {
+	   	  // ctx.drawImage(image,data.left_corner[1],data.left_corner[0]);
+	    // };
+	    // image.src = img
+	    // $('#canvas-hightlight').css('width',data.size[1]+'px')
+	    // $('#canvas-hightlight').css('height', data.size[0]+"px")
+	    // $('#canvas-hightlight').css('margin-left', data.left_corner[1]+"px")
+	    // $('#canvas-hightlight').css('margin-top', data.left_corner[0]+"px")
+	    // $('#canvas-hightlight').css('visibility', 'visible')
 
 
   };
