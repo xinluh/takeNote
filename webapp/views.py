@@ -50,6 +50,7 @@ def stream_frames(stream, pafy_video = None):
              lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.3))
 
     for blob in it:
+        yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(blob['sec'])})
         yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(blob['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
                                              'sec': int(blob['sec']),
                                              'proba': round(blob['proba'],2),
