@@ -70,3 +70,32 @@ def extract_blobs(img, img_proc_pipeline = pipeline_otsu, frame_selection = fram
 
         fragments.append(((xmin*xblocksize,ymin*yblocksize), fragment))
     return fragments
+
+def otsu_threshold(img):
+    return (img > threshold_otsu(np.nan_to_num(img)))
+
+def changed_fraction(blob, blob2, white_overweight=1.):
+    '''Return a weighted (by black/white thresholds) fraction of pixels that stay the same from blob to blob2'''
+    blob_bw = otsu_threshold(blob)
+    blob2_bw = otsu_threshold(blob2)
+
+    white_frac = 1.*blob2_bw[np.logical_and(blob_bw > 0,blob2_bw > 0)].size / blob_bw[blob_bw > 0].size
+    black_frac = 1.*blob2_bw[np.logical_and(blob2_bw == 0,blob_bw == 0)].size / blob_bw[blob_bw == 0].size
+    return white_frac**(1/white_overweight) * black_frac
+
+def shared_fraction(blob,blob2):
+    blob_bw = otsu_threshold(blob['blob'])
+    blob2_bw = otsu_threshold(blob2['blob'])
+    
+    left_corner = np.min(np.array([blob['left_corner'],blob2['left_corner']]),axis=0)
+    bottom_right_corner = np.max(np.array([np.array(blob['left_corner'])+blob['blob'].shape,
+                                           np.array(blob2['left_corner'])+blob2['blob'].shape]),axis=0)
+    
+    newimg1 = np.zeros([(bottom_right_corner - left_corner)[0], (bottom_right_corner - left_corner)[1]])
+    newimg2 = np.zeros([(bottom_right_corner - left_corner)[0], (bottom_right_corner - left_corner)[1]])
+    x1,y1 = np.array(blob['left_corner'])- left_corner
+    x2,y2 = np.array(blob2['left_corner'])- left_corner
+    newimg1[x1:x1+blob_bw.shape[0],y1:y1+blob_bw.shape[1]][blob_bw > 0] = 1
+    newimg2[x2:x2+blob2_bw.shape[0],y2:y2+blob2_bw.shape[1]][blob2_bw > 0] = 1
+    
+    return newimg1[np.logical_and(newimg1 > 0, newimg2 > 0)].size*1./np.max([np.count_nonzero(blob_bw>0), np.count_nonzero(blob2_bw>0)])
