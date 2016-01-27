@@ -38,7 +38,8 @@ def stream_frames(stream, pafy_video = None):
                                                                # 'video_desc': pafy_video.description,
                                                                'video_author': pafy_video.author})
     else: 
-        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000})
+        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000,
+                                                           'video_title': stream })
 
     from tqdm import tqdm
     def on_frame_change(sec,frame):

@@ -46,7 +46,6 @@ $(document).ready(function() {
   var eventsource_onmessage = function (event) {
 	    // console.log(event.data);
 	    var data = JSON.parse(event.data);
-	    // console.log(data.sec);
 	    var img = "data:image/png;base64,"+data.img;
 	    var frame = "data:image/png;base64,"+data.frame;
 	    var title = data.sec + " " + data.proba;
@@ -62,6 +61,8 @@ $(document).ready(function() {
 	    $('#current-frame').attr('src', frame).attr('title', data.proba)
 
 	    $('#current-img-time').html(' at ' + time)
+	  
+	    $('#blackboard-container').show()
 
 	    // var ctx = $('#canvas').get(0).getContext("2d");
 	    // var image = new Image();
@@ -85,13 +86,18 @@ $(document).ready(function() {
 		current_video_length = data.video_length
 		console.log(current_video_length)
 		$("#video-title").html(data.video_title);
-		$("#video-desc").html(data.video_desc);
+		console.log(data.video_title);
 		$("#video-author").html(data.video_author);
+		$("#video-desc").html(data.video_desc);
 
-		var canvas = $("#canvas").get(0);
-		canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-		$('#current-img').removeAttr('src').attr('title', data.proba)
-	    $('#current-frame').removeAttr('src').attr('title', data.proba)
+		$("#blackboard .fragment").remove();
+		$("#gallery .fragment").remove();
+		$("#blackboard-container").hide()
+
+		// var canvas = $("#canvas").get(0);
+		// canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+		$('#current-img').removeAttr('src')
+	    $('#current-frame').removeAttr('src')
 
 	};
 	var eventsource_onprogress = function(e) {

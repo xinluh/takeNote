@@ -105,8 +105,12 @@ ul.horizontal-slide li[class*="span"]:first-child {
     background-clip: content-box;
     background-color: black;
 	text-align: center;
-	font-size: tiny;
+	font-size: x-small;
 }
+#gallery .thumbnail:hover {
+    cursor: pointer;
+}
+
 #gallery .span2 {
 	text-align: center;
 	font-size: x-small;
