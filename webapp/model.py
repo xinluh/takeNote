@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 from skimage.filters import threshold_otsu, threshold_adaptive
 from skimage.feature import greycomatrix,greycoprops, corner_harris, corner_peaks
+from scipy import ndimage
 
 def calc_blob_property(b, keys = None):
     props = {}
@@ -15,6 +16,9 @@ def calc_blob_property(b, keys = None):
     props['threshold_otsu'] = threshold_otsu(np.nan_to_num(b))
     b_bw = (b>props['threshold_otsu'])    
     props['extent'] = 1.*np.count_nonzero(b_bw) / props['size']  # fraction of non zero pixels 
+    
+    ncluster = ndimage.label(b_bw,structure=np.ones((3,3)))[1]
+    props['ncluster_frac'] = ncluster*1./np.count_nonzero(b_bw)
     
     corners = corner_peaks(corner_harris(b_bw), min_distance=1)
     props['corner_frac'] = len(corners)*100./np.count_nonzero(b_bw)
