@@ -57,35 +57,39 @@ def find_text_in_frame(current_img, baseimgs, modelfile='webapp/model.pickle',pr
             return blobs
     return blobs
 
-def find_text_in_video(frame_iterator, find_text_in_frame_func):
+def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_threshold=5):
     base_frame = []
-    current_blobs = []
+    pending_blobs = []
+    past_blobs = []
+
     for sec, frame in frame_iterator:
         if len(base_frame) ==  0:
             base_frame = [frame]
             continue
-    
-        for blob in (b for b in current_blobs if len(b['change_frac']) == 5):
-            if np.median(blob['change_frac'])>0.7: # seems stable between frames; take this as a real change
-                other_blobs = [b for b in current_blobs if len(b['change_frac']) < 5 
+            
+        # which pending blob is stable and thus a real text change? 
+        for blob in (b for b in pending_blobs if len(b['unchange_frac']) == stability_threshold):
+            if np.median(blob['unchange_frac'])>0.7: # seems stable between frames
+                other_blobs = [b for b in pending_blobs if len(b['unchange_frac']) < stability_threshold 
                                                    and img_proc_utils.shared_fraction(blob, b) > 0.4]
                 largest_blob = max([blob]+other_blobs, key=lambda x: np.count_nonzero(img_proc_utils.threshold_otsu(x['blob'])>0))
                 base_frame = [largest_blob['frame']]
                 for b in other_blobs: 
-                    #print b['sec']
-                    current_blobs.remove(b);
+                    pending_blobs.remove(b);
+                past_blobs.append(largest_blob)
                 yield largest_blob 
-            current_blobs.remove(blob)
-
+            pending_blobs.remove(blob)
+            
         # compute the change frac with subsequent frames
-        for blob in (b for b in current_blobs if len(b['change_frac']) < 5): 
+        for blob in (b for b in pending_blobs if len(b['unchange_frac']) < stability_threshold): 
             b = blob.get('blob_bw', img_proc_utils.otsu_thresholded(blob['blob']))
             x, y = blob['left_corner']
-            frac = img_proc_utils.changed_fraction(b, img_proc_utils.otsu_thresholded(frame[x:x+b.shape[0],y:y+b.shape[1]]), white_overweight=2)
-            blob['change_frac'].append(frac)
+            frac = img_proc_utils.unchanged_fraction(b, img_proc_utils.otsu_thresholded(frame[x:x+b.shape[0],y:y+b.shape[1]]), white_overweight=2)
+            blob['unchange_frac'].append(frac)
 
+        # calculate new blobs
         text_blobs = find_text_in_frame_func(frame, base_frame)
         for blob in text_blobs:
             #print blob
-            blob.update({'frame': frame, 'sec':sec, 'change_frac':[]})
-        current_blobs += text_blobs
+            blob.update({'frame': frame, 'sec': int(sec), 'unchange_frac':[]})
+        pending_blobs += text_blobs

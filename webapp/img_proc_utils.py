@@ -74,7 +74,7 @@ def extract_blobs(img, img_proc_pipeline = pipeline_otsu, frame_selection = fram
 def otsu_thresholded(img):
     return (img > threshold_otsu(np.nan_to_num(img)))
 
-def changed_fraction(blob_bw, blob2_bw, white_overweight=1.):
+def unchanged_fraction(blob_bw, blob2_bw, white_overweight=1.):
     '''Return a weighted (by black/white thresholds) fraction of pixels that stay the same from blob to blob2.'''
     # blob_bw = otsu_thresholded(blob)
     # blob2_bw = otsu_thresholded(blob2)
@@ -84,6 +84,7 @@ def changed_fraction(blob_bw, blob2_bw, white_overweight=1.):
     return white_frac**(1/white_overweight) * black_frac
 
 def shared_fraction(blob,blob2):
+    ''' Return fraction of white pixels are shared between the two blobs, taking into account the different location of the blobs'''
     blob_bw = blob.get('blob_bw', otsu_thresholded(blob['blob']))
     blob2_bw = blob2.get('blob_bw', otsu_thresholded(blob2['blob']))
     
