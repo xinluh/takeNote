@@ -1,6 +1,7 @@
 import cv2
 import pafy
 import numpy as np
+from collections import deque
 import types
 import model
 import img_proc_utils
@@ -62,7 +63,23 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
     pending_blobs = []
     past_blobs = []
 
-    for sec, frame in frame_iterator:
+    frame_queue = deque(maxlen=stability_threshold) # general buffer
+    rewinding_queue = deque()
+    frame_iterator = iter(frame_iterator)
+
+    def next_frame():
+        while True:
+            if len(rewinding_queue) > 0: yield rewinding_queue.popleft()
+            else: yield frame_iterator.next()
+
+    def rewind(nframe):
+        assert(nframe <= len(frame_queue))
+        for _ in xrange(len(frame_queue)-nframe): frame_queue.popleft()
+        rewinding_queue.extend(frame_queue)
+
+    for sec, frame in next_frame():
+        frame_queue.append((sec,frame))
+
         if len(base_frame) ==  0:
             base_frame = [frame]
             continue
