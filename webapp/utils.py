@@ -79,6 +79,7 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
 
     for sec, frame in next_frame():
         frame_queue.append((sec,frame))
+        yield 'new_frame', (sec,frame)
 
         if len(base_frame) ==  0:
             base_frame = [frame]
@@ -94,7 +95,7 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
                 for b in other_blobs: 
                     pending_blobs.remove(b);
                 past_blobs.append(largest_blob)
-                yield largest_blob 
+                yield 'new_blob', largest_blob 
             pending_blobs.remove(blob)
             
         # compute the change frac with subsequent frames

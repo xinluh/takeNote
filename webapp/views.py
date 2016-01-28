@@ -50,14 +50,16 @@ def stream_frames(stream, pafy_video = None):
              tqdm(utils.get_frames_from_stream(stream,3, on_frame_change=on_frame_change)),
              lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.3))
 
-    for blob in it:
-        yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(blob['sec'])})
-        yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(blob['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
-                                             'sec': int(blob['sec']),
-                                             'proba': round(blob['proba'],2),
-                                             'left_corner': blob['left_corner'],
-                                             'size': blob['blob'].shape,
-                                             'frame': utils.img_to_base64_bytes(blob['frame'])
+    for dtype, data in it:
+        if dtype == 'new_frame':
+            yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(data[0])})
+        elif dtype == 'new_blob':
+            yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(data['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
+                                             'sec': int(data['sec']),
+                                             'proba': round(data['proba'],2),
+                                             'left_corner': data['left_corner'],
+                                             'size': data['blob'].shape,
+                                             'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
     print 'onend!'
     yield 'event: onend\ndata: end\n\n'
