@@ -99,4 +99,4 @@ def shared_fraction(blob,blob2):
     newimg1[x1:x1+blob_bw.shape[0],y1:y1+blob_bw.shape[1]][blob_bw > 0] = 1
     newimg2[x2:x2+blob2_bw.shape[0],y2:y2+blob2_bw.shape[1]][blob2_bw > 0] = 1
     
-    return newimg1[np.logical_and(newimg1 > 0, newimg2 > 0)].size*1./np.max([np.count_nonzero(blob_bw>0), np.count_nonzero(blob2_bw>0)])
+    return newimg1[np.logical_and(newimg1 > 0, newimg2 > 0)].size*1./np.min([np.count_nonzero(blob_bw>0), np.count_nonzero(blob2_bw>0)])
