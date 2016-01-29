@@ -131,6 +131,12 @@ ul.horizontal-slide li[class*="span"]:first-child {
 	font-size: x-small;
 }
 
+#gallery-placeholder {
+    font-size: xx-large;
+    height: 100px;
+    line-height: 100px;
+}
+
 .progress span {
     /* position: absolute; */
     display: block;

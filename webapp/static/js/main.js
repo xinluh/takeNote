@@ -13,6 +13,9 @@ $(document).ready(function() {
 	  $("#video-title").html("Loading video...");
 	  $("#video-desc").html("")
 	  $("#video-author").html("")
+	  $("#gallery-placeholder").fadeIn(2000);
+	  $('#blackboard-time span').text("00:00:00");
+	  blackboard_paused = false;
 
       source = new EventSource('/getImageStream/'+encodeURIComponent($("#videoUrl").val()));
 	  source.addEventListener('onstart', eventsource_onstart, false);
@@ -69,7 +72,7 @@ $(document).ready(function() {
 	    var frame = "data:image/png;base64,"+data.frame;
 	    var title = data.sec + " " + data.proba;
 	    var time = sec_to_time_string(data.sec);
-        //$('#col1').append(`<img style="padding:10px" src="${img}" title="${title}"/>`)
+	    $("#gallery-placeholder").hide();
 	    if (data.size[1]*data.size[0] > 600) {
 			var html = `<li class="span2 fragment"  data-framesec="${data.sec}" data-loc-x="${data.left_corner[1]}" data-loc-y="${data.left_corner[0]}"> <a class="thumbnail" ><img src="${img}" alt="" title="${data.proba} - ${data.n_sameblobs}"/></a><span class="time-text">${time}</span></li>`
 			$(html).hide().appendTo('#gallery').fadeIn(2000);
