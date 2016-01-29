@@ -84,7 +84,30 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
         if len(base_frame) ==  0:
             base_frame = [frame]
             continue
+
+        for blob in past_blobs[:]:
+            if len(blob.get('removed_changed_frac',[])) >= stability_threshold:
+                if np.median(blob['removed_changed_frac']) > 0.4: # erasure seems stable
+                    past_blobs.remove(blob)
+                    yield 'erased_blob', blob 
+                    # todo rewind?
+                    print 'frame reset at', blob['removed_at_sec']
+                    base_frame = [blob['removed_at_frame']] # reset base frame 
+                else: # probably not actual erasure
+                    del blob['removed_at_sec'], blob['removed_at_frame'], blob['removed_changed_frac']
             
+        for blob in past_blobs:
+            b = blob.get('blob_bw', img_proc_utils.otsu_thresholded(blob['blob']))
+            x, y = blob['left_corner']
+            current_blob_neg = ~(img_proc_utils.otsu_thresholded(frame[x:x+b.shape[0],y:y+b.shape[1]]).astype(np.bool))
+            frac = img_proc_utils.unchanged_fraction(b, current_blob_neg, white_overweight=2)
+            if 'removed_at_sec' in blob: # pending erasure
+                blob['removed_changed_frac'].append(frac)
+            elif frac > 0.4:
+                blob['removed_at_sec'] = int(sec)
+                blob['removed_at_frame'] = frame
+                blob['removed_changed_frac'] = [frac]
+
         # which pending blob is stable and thus a real text change? 
         for blob in (b for b in pending_blobs if len(b['unchange_frac']) == stability_threshold):
             if np.median(blob['unchange_frac'])>0.7: # seems stable between frames

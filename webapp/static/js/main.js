@@ -11,6 +11,7 @@ $(document).ready(function() {
 	  source.addEventListener('onstart', eventsource_onstart, false);
 	  source.addEventListener('onprogress', eventsource_onprogress, false);
 	  source.addEventListener('onend', eventsource_onend, false);
+	  source.addEventListener('onerasure', eventsource_onerasure, false);
 	  source.onmessage = eventsource_onmessage;
 	  // $.post('getimages', {'url': $("#videoUrl").val()},
 			 // function(data) {
@@ -80,6 +81,24 @@ $(document).ready(function() {
 
 
   };
+	var eventsource_onerasure = function(e) {
+		// var data = JSON.parse(e.data);
+		// console.log(data.msg);
+		// console.log(e.data)
+		var data = JSON.parse(e.data)
+
+		var blackboard_el = $('#blackboard').find('[data-framesec="'+ data.sec + '"]').filter(function() {
+			return ($(this).css('margin-top') == data.left_corner[0]+'px' &&
+					$(this).css('margin-left') == data.left_corner[1]+'px');
+		});
+		blackboard_el.attr('data-removedsec',data.removed_sec);
+		blackboard_el.fadeOut(2000);
+
+		var gallery_el = $('#gallery').find(`[data-framesec="${data.sec}"],[data-top-x="${data.left_corner[1]}"],[data-top-y="${data.left_corner[0]}"]`);
+		gallery_el.attr('data-removedsec',data.removed_sec);
+		var text_el = gallery_el.find(".time-text");
+		text_el.text(text_el.text() + " - " + sec_to_time_string(data.removed_sec));
+   };
 	var eventsource_onstart = function(e) {
 		// var data = JSON.parse(e.data);
 		// console.log(data.msg);

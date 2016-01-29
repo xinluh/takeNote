@@ -74,7 +74,11 @@ def stream_frames(stream, pafy_video = None):
                                              'n_sameblobs': data['n_sameblobs'],
                                              'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
-    print 'onend!'
+        elif dtype == "erased_blob":
+            yield 'event: onerasure\ndata: %s\n\n' % json.dumps({'sec': int(data['sec']),
+                                                                 'removed_sec': int(data['removed_at_sec']),
+                                                                 'left_corner': data['left_corner']})
+
     yield 'event: onend\ndata: end\n\n'
     raise StopIteration
     
