@@ -72,8 +72,7 @@ $(document).ready(function() {
         //$('#col1').append(`<img style="padding:10px" src="${img}" title="${title}"/>`)
 	    if (data.size[1]*data.size[0] > 600) {
 			var html = `<li class="span2 fragment"  data-framesec="${data.sec}" data-loc-x="${data.left_corner[1]}" data-loc-y="${data.left_corner[0]}"> <a class="thumbnail" ><img src="${img}" alt="" title="${data.proba} - ${data.n_sameblobs}"/></a><span class="time-text">${time}</span></li>`
-			var el = $(html).hide().appendTo('#gallery');
-			if (!blackboard_paused) {el.fadeIn(2000);}
+			$(html).hide().appendTo('#gallery').fadeIn(2000);
 		}
 
 	    var html = `<div class="fragment" data-framesec="${data.sec}" style="width:${data.size[1]+'px'};height:${data.size[0]+'px'};margin-top:${data.left_corner[0]+'px'};margin-left:${data.left_corner[1]+'px'}"><img src="${img}" alt="" /><span>${time}</span></div>`
