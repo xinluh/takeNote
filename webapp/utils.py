@@ -52,7 +52,7 @@ def find_text_in_frame(current_img, baseimgs, modelfile='webapp/model.pickle',pr
     for baseimg in baseimgs:
         for (xmin,ymin), blob in img_proc_utils.extract_blobs(current_img-baseimg, img_proc_pipeline = img_proc_utils.pipeline_otsu):
             proba = model.predict_proba(blob, model=modelfile)
-            if proba > proba_threshold or debug:
+            if proba >= proba_threshold or debug:
                 blobs.append({'blob': blob, 'left_corner': [xmin,ymin], 'proba': proba})
         if len(blobs) > 0 and not debug:
             return blobs
@@ -91,10 +91,11 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
                 other_blobs = [b for b in pending_blobs if len(b['unchange_frac']) < stability_threshold 
                                                    and img_proc_utils.shared_fraction(blob, b) > 0.4]
                 largest_blob = max([blob]+other_blobs, key=lambda x: np.count_nonzero(img_proc_utils.threshold_otsu(x['blob'])>0))
-                base_frame = [largest_blob['frame']]
+                base_frame = [largest_blob['frame']] # reset base frame 
                 for b in other_blobs: 
                     pending_blobs.remove(b);
                 past_blobs.append(largest_blob)
+                largest_blob['n_sameblobs'] = [b['proba'] for b in [blob]+other_blobs]
                 yield 'new_blob', largest_blob 
             pending_blobs.remove(blob)
             

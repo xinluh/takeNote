@@ -60,7 +60,7 @@ def stream_frames(stream, pafy_video = None):
 
     it = utils.find_text_in_video(
              tqdm(utils.get_frames_from_stream(stream,3, on_frame_change=on_frame_change)),
-             lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.3))
+             lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
 
     for dtype, data in it:
         if dtype == 'new_frame':
@@ -71,6 +71,7 @@ def stream_frames(stream, pafy_video = None):
                                              'proba': round(data['proba'],2),
                                              'left_corner': data['left_corner'],
                                              'size': data['blob'].shape,
+                                             'n_sameblobs': data['n_sameblobs'],
                                              'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
     print 'onend!'
