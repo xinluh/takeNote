@@ -32,42 +32,42 @@ def get_image_stream(url=None):
         return 'error'
     return Response(stream_frames(stream, video), mimetype="text/event-stream")
 
-def server_event_msg(mtype='message', data) {
+def server_event_msg(data, mtype='message'):
     return 'event: %s\ndata: %s\n\n' % (mtype,json.dumps(data))
-}
+
 def stream_frames(stream, pafy_video = None):
+    demo_diff = 0
     if pafy_video:
-        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': pafy_video.length,
-                                                           'video_title': pafy_video.title,
-                                                           'video_desc': pafy_video.description,
-                                                           'video_author': pafy_video.author,
-                                                           'video_url': pafy_video.url})
+        yield server_event_msg({'video_length': pafy_video.length,
+                                'video_title': pafy_video.title,
+                                'video_desc': pafy_video.description,
+                                'video_author': pafy_video.author,
+                                'video_url': pafy_video.url},
+                               'onstart')
     else:
         if 'rubakov1' in stream:
-            yield 'event: onstart\ndata: %s\n\n' % json.dumps({"video_author": "Galileo Galilei",
-                                                    "video_length": 5412,
-                                                    "video_title": "Early Universe - V. Rubakov - lecture 1/9",
-                                                    "video_url": "https://www.youtube.com/watch?v=XsqtPhra2f0",
-                                                    "video_desc": "GGI lectures on the theory of fundamental interactions, January 2015\nhttp://heidi.pd.infn.it/html/GGI/index.php"})
+            demo_diff = 4*60 # the demo video is four min in
+            yield server_event_msg({"video_author": "Galileo Galilei",
+                                    "video_length": 5412-demo_diff,
+                                    "video_title": "Early Universe - V. Rubakov - lecture 1/9",
+                                    "video_url": "https://www.youtube.com/watch?v=XsqtPhra2f0",
+                                    "video_desc": "GGI lectures on the theory of fundamental interactions, January 2015\nhttp://heidi.pd.infn.it/html/GGI/index.php"},
+                                   'onstart')
         else:
-            yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000,
-                                                           'video_title': stream })
+            yield server_event_msg({'video_length': 5000,'video_title': stream }, 'onstart')
+            
 
     from tqdm import tqdm
-    def on_frame_change(sec,frame):
-        if int(sec % 20) == 0:
-            yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(sec)})
-
     it = utils.find_text_in_video(
-             tqdm(utils.get_frames_from_stream(stream,3, on_frame_change=on_frame_change)),
+             tqdm(utils.get_frames_from_stream(stream,3)),
              lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
 
     for dtype, data in it:
         if dtype == 'new_frame':
-            yield 'event: onprogress\ndata: %s\n\n' % json.dumps({'sec': int(data[0])})
+            yield server_event_msg({'sec': int(data[0])},'onprogress')
         elif dtype == 'new_blob':
-            yield 'data: %s\n\n' % json.dumps({'img': utils.img_to_base64_bytes(data['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
-                                             'sec': int(data['sec']),
+            yield server_event_msg({'img': utils.img_to_base64_bytes(data['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
+                                             'sec': int(data['sec']+demo_diff),
                                              'proba': round(data['proba'],2),
                                              'left_corner': data['left_corner'],
                                              'size': data['blob'].shape,
@@ -75,11 +75,12 @@ def stream_frames(stream, pafy_video = None):
                                              'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
         elif dtype == "erased_blob":
-            yield 'event: onerasure\ndata: %s\n\n' % json.dumps({'sec': int(data['sec']),
-                                                                 'removed_sec': int(data['removed_at_sec']),
-                                                                 'left_corner': data['left_corner']})
+            yield server_event_msg({'sec': int(data['sec']+demo_diff),
+                                    'removed_sec': int(data['removed_at_sec']+demo_diff),
+                                    'left_corner': data['left_corner']},
+                                   'onerasure')
 
-    yield 'event: onend\ndata: end\n\n'
+    yield server_event_msg({'end':True}, 'onend')
     raise StopIteration
     
 def stream_frames2(stream, pafy_video = None):

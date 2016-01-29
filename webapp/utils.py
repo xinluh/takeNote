@@ -91,7 +91,7 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
                     past_blobs.remove(blob)
                     yield 'erased_blob', blob 
                     # todo rewind?
-                    print 'frame reset at', blob['removed_at_sec']
+                    # print 'frame reset at', blob['removed_at_sec']
                     base_frame = [blob['removed_at_frame']] # reset base frame 
                 else: # probably not actual erasure
                     del blob['removed_at_sec'], blob['removed_at_frame'], blob['removed_changed_frac']
