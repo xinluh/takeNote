@@ -42,8 +42,8 @@
     border-color: red;
 	border-radius: 2px 2px 2px 2px;
 	position: absolute;
-	color: red;
-    text-align: right;
+	color: white;
+    text-align: center;
     font-size: x-small;
 }
 #blackboard .fragment span{
@@ -53,15 +53,15 @@
 	visibility: visible;
 }
 #blackboard .fragment:hover {
-    border: red 2px solid;
+    border: #337ab7 1px solid;
     z-index: 9999;
 	cursor: pointer;
+	border-bottom: #337ab7 15px solid;
 }
-#blackboard .fragment-hover{ /* just duplicating */
-	border: red 2px solid;
+#blackboard .fragment-hover{ /* just duplicating above for toggling in js */
+    border: #337ab7 1px solid;
     z-index: 9999;
 	cursor: pointer;
-
 }
 
 #canvas-hightlight {
@@ -114,4 +114,15 @@ ul.horizontal-slide li[class*="span"]:first-child {
 #gallery .span2 {
 	text-align: center;
 	font-size: x-small;
+}
+
+.progress span {
+    /* position: absolute; */
+    display: block;
+    width: 100%;
+    color: black;
+}
+
+#gallery .fragment[data-removedsec] {
+    /* border: 2px red solid; */
 }

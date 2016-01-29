@@ -71,39 +71,32 @@
     </div>
 
     <div id="video-container" class="container">
-	  <!-- Example row of columns -->
-	  <div class="row">
-		<div>
-		  <h1 id="video-title"></h1>
+	  <div class="row" id="blackboard-container">
+		<div id="col1" class="col-md-4">
+		  <h3 id="video-title"></h3>
 		  <div id="video-author"></div>
-		  <p><div id="video-desc"></div>
-		</div>
-		<p></p>
-		<div class="progress">
-		  <div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
-			   aria-valuemin="0" aria-valuemax="100" style="width:0%"> 0% </div>
-		</div>
-
-		<div id="blackboard-container">
-		  <div id="col1" class="col-md-4">
-			Last blackboard addition<span id="current-img-time"></span>:
-			<p><p>
-			<p><img id="current-frame" height="150"/>	
-			<p>
-			  <img id="current-img"/>	
-		  </div>
-		  <div class="col-md-8">
-			<div id="blackboard">
-			  <!-- <canvas id="canvas" width="640" height="320"></canvas> -->
-			  <div id="canvas-hightlight"></div>
+		  <p/>
+		  <div id="video-desc"></div>
+		  <p/><p/>
+		  <div class="progress">
+			<div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
+				 aria-valuemin="0" aria-valuemax="100" style="width:0%"> <span class="show">0%</span> </div>
 			</div>
-		  </div>
-		  <div class="col-lg-12" id="gallery-container">
-			<ul class="horizontal-slide" id="gallery">
-
-			</ul>
+		</div>
+		
+		<div class="col-md-8">
+		  <div id="blackboard">
+			<!-- <canvas id="canvas" width="640" height="320"></canvas> -->
+			<!-- <div id="canvas-hightlight"></div> -->
 		  </div>
 		</div>
+
+		<div class="col-lg-12" id="gallery-container">
+		  <ul class="horizontal-slide" id="gallery">
+
+		  </ul>
+		</div>
+		
 	  </div>
     </div> <!-- /container -->
 

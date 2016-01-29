@@ -25,20 +25,32 @@ def get_image_stream(url=None):
         video = None
     else:
         video = pafy.new(url)
+        video.url = url
         stream = utils.get_youtube_stream_url(video)
     print stream
     if not stream:
         return 'error'
     return Response(stream_frames(stream, video), mimetype="text/event-stream")
 
+def server_event_msg(mtype='message', data) {
+    return 'event: %s\ndata: %s\n\n' % (mtype,json.dumps(data))
+}
 def stream_frames(stream, pafy_video = None):
     if pafy_video:
         yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': pafy_video.length,
-                                                               'video_title': pafy_video.title,
-                                                               # 'video_desc': pafy_video.description,
-                                                               'video_author': pafy_video.author})
-    else: 
-        yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000,
+                                                           'video_title': pafy_video.title,
+                                                           'video_desc': pafy_video.description,
+                                                           'video_author': pafy_video.author,
+                                                           'video_url': pafy_video.url})
+    else:
+        if 'rubakov1' in stream:
+            yield 'event: onstart\ndata: %s\n\n' % json.dumps({"video_author": "Galileo Galilei",
+                                                    "video_length": 5412,
+                                                    "video_title": "Early Universe - V. Rubakov - lecture 1/9",
+                                                    "video_url": "https://www.youtube.com/watch?v=XsqtPhra2f0",
+                                                    "video_desc": "GGI lectures on the theory of fundamental interactions, January 2015\nhttp://heidi.pd.infn.it/html/GGI/index.php"})
+        else:
+            yield 'event: onstart\ndata: %s\n\n' % json.dumps({'video_length': 5000,
                                                            'video_title': stream })
 
     from tqdm import tqdm
