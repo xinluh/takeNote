@@ -63,7 +63,7 @@ def stream_frames(stream, pafy_video = None):
 
     hist = defaultdict(float)
     it = utils.find_text_in_video(
-             tqdm(utils.get_frames_from_stream(stream,3)),
+             utils.get_frames_from_stream(stream,3),
              lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
 
     for dtype, data in it:
