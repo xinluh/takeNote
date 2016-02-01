@@ -22,7 +22,9 @@ $(document).ready(function() {
 	  source.addEventListener('onprogress', eventsource_onprogress, false);
 	  source.addEventListener('onend', eventsource_onend, false);
 	  source.addEventListener('onerasure', eventsource_onerasure, false);
+	  source.addEventListener('onhist', eventsource_onhist, false);
 	  source.onmessage = eventsource_onmessage;
+	  if (chart == null) {nv.addGraph(nvd3_setup);}
   });
   $('#stopbtn').click(function() {
 	  source.close();
@@ -31,6 +33,8 @@ $(document).ready(function() {
   var current_video_length = 0;
   var current_video_url = null;
   var blackboard_paused = false;
+  var chart = null; // nvd3 chart
+  var chartData;
   
   function sec_to_time_string(sec) {
 	    var hour = Math.floor(sec/60/60);
@@ -64,6 +68,57 @@ $(document).ready(function() {
 	  var sec = $(this).attr('data-framesec');
 	  $('#blackboard').find('[data-framesec="'+ sec + '"]').toggleClass('fragment-hover');
   });
+
+  function nvd3_update(hist) {
+	  var time_hist = [{
+		  values: hist,
+		  color: "#337ab7",
+	  }]
+	// Update the SVG with the new data and call chart
+	chartData.datum(time_hist).transition().duration(500).call(chart);
+	nv.utils.windowResize(chart.update);
+
+	  // d3.selectAll("rect.nv-bar") // make positive and negative different in color
+		  // .style("fill", function(d, i){
+			  // return d.y > 0 ? "#337ab7":"#A94442";
+		  // });
+  };
+
+  var nvd3_setup = function() {
+	  chart = nv.models.historicalBarChart();
+	  chart
+		.margin({left: 0, bottom: 0, right:0, top:0})
+		  // .useInteractiveGuideline(true)
+		  .duration(250)
+	    // .tooltip(function(key, x, y, e, graph) {
+			// return '<h3>' + key + '</h3>' +
+				// '<p>' +  y + ' on ' + x + '</p>';
+		// })
+	  ;
+
+	  // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+	  chart.xAxis
+	      .axisLabel('Time')
+		  .tickFormat(function(d, i){
+			  // console.log([d,i])
+               var hour  = Math.floor(d/60%60)
+	    	var min = Math.floor(d%60);
+			  return (hour < 10 ? "0"+ hour : hour)+ ":"+ (min < 10 ? "0" + min : min)
+		  });
+
+	  chart.showXAxis(false);
+	  chart.showYAxis(false);
+	  var time_hist = [{
+		  values: [],
+		  color: "#337ab7",
+	  }]
+	  chartData = d3.select('#test1').datum(time_hist)
+	  chartData.transition().call(chart);
+
+	  nv.utils.windowResize(chart.update);
+	  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+	  return chart;
+  };
 
   var eventsource_onmessage = function (event) {
 	    // console.log(event.data);
@@ -172,5 +227,10 @@ $(document).ready(function() {
 		$('#progressbar .show').html('Done!')
 		$('#progressbar').fadeOut(2000);
 	};
+	var eventsource_onhist = function(e){
+		// console.log(e.data)
+		var data = JSON.parse(e.data)
+		nvd3_update(data.hist)
+	}
 
 })

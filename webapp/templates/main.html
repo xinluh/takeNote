@@ -9,6 +9,9 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
+	<link href="http://nvd3-community.github.io/nvd3/build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="http://nvd3-community.github.io/nvd3/build/nv.d3.js"></script>
     <title>takeNote: CliffNotes for Video Lectures</title>
 
     <!-- Bootstrap core CSS -->
@@ -18,7 +21,7 @@
     <link href="static/css/main.css" rel="stylesheet">
   </head>
 
-  <body>
+  <body class='with-3d-shadow with-transitions'>
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -69,7 +72,10 @@
 		  <div class="progress">
 			<div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
 				 aria-valuemin="0" aria-valuemax="100" style="width:0%"> <span class="show">0%</span> </div>
-			</div>
+		  </div>
+		  <div style="position:relative">
+			<svg id="activity-graph"></svg>
+		  </div>
 		</div>
 		
 		<div class="col-md-8">

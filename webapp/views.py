@@ -4,6 +4,9 @@ import json
 import urllib
 from flask import render_template, request,jsonify,Response
 from sqlalchemy import create_engine
+from tqdm import tqdm
+from collections import defaultdict
+import numpy as np
 import pafy
 import utils, img_proc_utils, model
 
@@ -37,6 +40,7 @@ def server_event_msg(data, mtype='message'):
 
 def stream_frames(stream, pafy_video = None):
     demo_diff = 0
+    video_length = pafy_video.length if pafy_video else (5412-demo_diff if 'rubakov1' in stream else 5000)
     if pafy_video:
         yield server_event_msg({'video_length': pafy_video.length,
                                 'video_title': pafy_video.title,
@@ -57,7 +61,7 @@ def stream_frames(stream, pafy_video = None):
             yield server_event_msg({'video_length': 5000,'video_title': stream }, 'onstart')
             
 
-    from tqdm import tqdm
+    hist = defaultdict(float)
     it = utils.find_text_in_video(
              tqdm(utils.get_frames_from_stream(stream,3)),
              lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
@@ -74,11 +78,19 @@ def stream_frames(stream, pafy_video = None):
                                              'n_sameblobs': data['n_sameblobs'],
                                              'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
+            if 'blob_bw' not in data: data['blob_bw'] = img_proc_utils.otsu_thresholded(data['blob'])
+            hist[(int(data['sec']+demo_diff)/60)] += np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
+            
+            # print hist, {'hist': [{'x': k, 'y': v} for k,v in hist.iteritems()]}
+            # yield server_event_msg({'hist': [{'x': k, 'y': int(v/10.)} for k,v in hist.iteritems()]}, 'onhist')
+            yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
         elif dtype == "erased_blob":
             yield server_event_msg({'sec': int(data['sec']+demo_diff),
                                     'removed_sec': int(data['removed_at_sec']+demo_diff),
                                     'left_corner': data['left_corner']},
                                    'onerasure')
+            hist[(int(data['removed_at_sec']+demo_diff)/60)] -= np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
+            yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
 
     yield server_event_msg({'end':True}, 'onend')
     raise StopIteration
