@@ -83,7 +83,7 @@ def stream_frames(stream, pafy_video = None):
                                              'left_corner': data['left_corner'],
                                              'size': data['blob'].shape,
                                              'n_sameblobs': data['n_sameblobs'],
-                                             'frame': utils.img_to_base64_bytes(data['frame'])
+                                             # 'frame': utils.img_to_base64_bytes(data['frame'])
                                          })
             if 'blob_bw' not in data: data['blob_bw'] = img_proc_utils.otsu_thresholded(data['blob'])
             hist[(int(data['sec']+demo_diff)/60)] += np.count_nonzero(data['blob_bw'][data['blob_bw']>0])

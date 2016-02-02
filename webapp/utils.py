@@ -6,10 +6,21 @@ import types
 import model
 import img_proc_utils
 
-#from StringIO import StringIO
+from StringIO import StringIO
+import Image
 import urllib
 
 def img_to_base64_bytes(img):
+    img *= (img>0)
+    mask = ((~np.isnan(img))*255).astype(np.uint8)
+    im = Image.fromarray(img.astype(np.uint8))
+    strio = StringIO()
+    im.putalpha(Image.fromarray(mask))
+    im.save(strio, "png")
+    return urllib.quote(strio.getvalue().encode("base64").rstrip('\n'))
+
+
+def img_to_base64_bytes2(img):
     ret, buf = cv2.imencode('.png',img)
     return urllib.quote(buf.tostring().encode("base64").rstrip('\n'))
 
