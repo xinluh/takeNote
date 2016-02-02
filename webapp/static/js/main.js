@@ -51,7 +51,9 @@ $(document).ready(function() {
   }
   function rewind_blackboard_to(sec) {
      $("#blackboard .fragment").filter(function(){
-       return (parseInt($(this).attr('data-framesec')) > sec) }).fadeOut(500);
+		 var removed = parseInt($(this).attr('data-removedsec'));
+		 removed = (removed!=undefined && removed < sec);
+		 return (parseInt($(this).attr('data-framesec')) > sec || removed) }).fadeOut(500);
      $("#blackboard .fragment").filter(function(){
        var removed = parseInt($(this).attr('data-removedsec'));
        removed = (removed!=undefined && removed < sec);
