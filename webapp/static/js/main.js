@@ -141,9 +141,11 @@ $(document).ready(function() {
 	    var title = data.sec + " " + data.proba;
 	    var time = sec_to_time_string(data.sec);
 	    $("#gallery-placeholder").hide();
+	    var el_gallery = null;
 	    if (data.size[1]*data.size[0] > 600) {
 			var html = `<li class="span2 fragment"  data-framesec="${data.sec}" data-loc-x="${data.left_corner[1]}" data-loc-y="${data.left_corner[0]}"> <a class="thumbnail" ><img src="${img}" alt="" title="${data.proba} - ${data.n_sameblobs}"/></a><span class="time-text">${time}</span></li>`
-			$(html).hide().appendTo('#gallery').fadeIn(2000);
+			el_gallery = $(html).hide().appendTo('#gallery')
+			el_gallery.fadeIn(2000);
 		}
 
 	    var html = `<div class="fragment" data-framesec="${data.sec}" style="width:${data.size[1]+'px'};height:${data.size[0]+'px'};margin-top:${data.left_corner[0]+'px'};margin-left:${data.left_corner[1]+'px'}"><img src="${img}" alt="" /><span>${time}</span></div>`
@@ -151,6 +153,12 @@ $(document).ready(function() {
 	    if (!blackboard_paused) {
 			el.fadeIn(2000);
 			$('#blackboard-time span').text(time);
+			if (el_gallery != null) {
+				var container = $('#gallery');
+				container.animate({
+					scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
+				});
+			}
 		}
 
 	    // $('#current-img').attr('src', img).attr('title', data.proba)
