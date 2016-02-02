@@ -99,8 +99,12 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
         for blob in past_blobs[:]:
             if len(blob.get('removed_changed_frac',[])) >= stability_threshold:
                 if np.median(blob['removed_changed_frac']) > 0.4: # erasure seems stable
-                    past_blobs.remove(blob)
-                    yield 'erased_blob', blob 
+                    try:
+                        past_blobs.remove(blob)
+                        yield 'erased_blob', blob
+                    except Exception, e:
+                        print e
+                        print blob
                     # todo rewind?
                     # print 'frame reset at', blob['removed_at_sec']
                     base_frame = [blob['removed_at_frame']] # reset base frame 
