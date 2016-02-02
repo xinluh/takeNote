@@ -1,8 +1,9 @@
 from webapp import app
 import time
 import json
+import os
 import urllib
-from flask import render_template, request,jsonify,Response
+from flask import render_template, request,jsonify,Response, send_from_directory
 from sqlalchemy import create_engine
 from tqdm import tqdm
 from collections import defaultdict
@@ -18,6 +19,11 @@ def index():
 @app.route('/slides')
 def slides():
     return render_template('slides.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')    
     
 @app.route('/getImageStream')
 @app.route('/getImageStream/<path:url>')
