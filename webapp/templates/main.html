@@ -55,7 +55,6 @@
 		</form>
 		<br>
         <p><a class="btn btn-primary btn-lg" role="button" id="gobtn">CliffNote It! &raquo;</a>
-		  <a class="btn btn-primary btn-lg" role="button" id="stopbtn">Stop processing</a>
 		</p>
       </div>
     </div>
@@ -68,9 +67,16 @@
 		  <p/>
 		  <div id="video-desc"></div>
 		  <p/><p/>
-		  <div class="progress">
-			<div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
-				 aria-valuemin="0" aria-valuemax="100" style="width:0%"> <span class="show">0%</span> </div>
+		  <div class="row" id="progress-container">
+			<div class="col-md-8">
+			  <div class="progress">
+				<div class="progress-bar" role="progressbar" aria-valuenow="20" id="progressbar"
+				   aria-valuemin="0" aria-valuemax="100" style="width:0%"> <span class="show">0%</span> </div>
+			  </div>
+			</div>
+			<div class="col-md-4">
+			  <a class="btn btn-primary btn-sm" role="button" id="stopbtn">Stop processing</a>
+			</div>
 		  </div>
 		  <div style="position:relative">
 			<svg id="activity-graph"></svg>

@@ -208,7 +208,7 @@ $(document).ready(function() {
 	};
 	var eventsource_onprogress = function(e) {
 		$("#blackboard-container").show()
-		$('#progressbar').show();
+		$('#progress-container').show();
 		var data = JSON.parse(e.data)
 		//console.log('onprogress');
 		// console.log(sec_to_time_string(current_video_length));
@@ -225,7 +225,7 @@ $(document).ready(function() {
 		console.log(e.data)
 		event.target.close();
 		$('#progressbar .show').html('Done!')
-		$('#progressbar').fadeOut(2000);
+		$('#progress-container').fadeOut(3000);
 	};
 	var eventsource_onhist = function(e){
 		// console.log(e.data)

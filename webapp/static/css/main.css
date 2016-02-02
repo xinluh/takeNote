@@ -137,6 +137,15 @@ ul.horizontal-slide li[class*="span"]:first-child {
     line-height: 100px;
 }
 
+#progress-container {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#progress-container .progress {
+	margin-top: 5px;
+	margin-bottom: 0px;
+}
 .progress span {
     position: absolute;
 	padding-right: 20px;
@@ -147,6 +156,10 @@ ul.horizontal-slide li[class*="span"]:first-child {
 
 #gallery .fragment[data-removedsec] {
     /* border: 2px red solid; */
+}
+
+#activity-graph-container {
+	height: 100px;
 }
 
 svg {
