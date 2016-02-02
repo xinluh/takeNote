@@ -157,8 +157,9 @@ $(document).ready(function() {
 			$('#blackboard-time span').text(time);
 			if (el_gallery != null) {
 				var container = $('#gallery');
+				console.log([container[0].scrollWidth - container.scrollLeft(), container.outerWidth()])
 				// only auto scroll if it is already at the end (else the user is probably trying to scroll so in that case don't autoscroll )
-				if (container[0].scrollHeight - container.scrollTop() == container.outerHeight()) {
+				if (container[0].scrollWidth - container.scrollLeft()- 300 < container.outerWidth()) {
 					container.animate({
 						scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
 					});
