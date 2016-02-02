@@ -157,9 +157,12 @@ $(document).ready(function() {
 			$('#blackboard-time span').text(time);
 			if (el_gallery != null) {
 				var container = $('#gallery');
-				container.animate({
-					scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
-				});
+				// only auto scroll if it is already at the end (else the user is probably trying to scroll so in that case don't autoscroll )
+				if (container[0].scrollHeight - container.scrollTop() == container.outerHeight()) {
+					container.animate({
+						scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
+					});
+				}
 			}
 		}
 
