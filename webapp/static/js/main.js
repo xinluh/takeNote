@@ -3,6 +3,7 @@ $(document).ready(function() {
 
   var source = null;
   $('#gobtn').click(function() {
+	  // if (source != null) {source.close();}
 	  $('#video-container').show();
 	  $("#blackboard .fragment").remove();
 	  $("#gallery .fragment").remove();
@@ -48,6 +49,16 @@ $(document).ready(function() {
 	    var second = Math.floor(sec%60);
 	    return current_video_url+`&t=${hour}h${min}m${second}s`
   }
+  function rewind_blackboard_to(sec) {
+     $("#blackboard .fragment").filter(function(){
+       return (parseInt($(this).attr('data-framesec')) > sec) }).fadeOut(500);
+     $("#blackboard .fragment").filter(function(){
+       var removed = parseInt($(this).attr('data-removedsec'));
+       removed = (removed!=undefined && removed < sec);
+       return (parseInt($(this).attr('data-framesec')) <= sec && !removed)}).fadeIn(500);
+     $("#blackboard-time span").text(sec_to_time_string(sec));
+     blackboard_paused = true;
+  }
 
   $('#blackboard').on('click', '.fragment', function() {
       // alert('This goes to yt link at sec '+$(this).attr('data-framesec'));
@@ -55,14 +66,7 @@ $(document).ready(function() {
   });
   $('#gallery').on('click', '.fragment', function() {
       var sec = parseInt($(this).attr('data-framesec'));
-	  $("#blackboard .fragment").filter(function(){
-		  return (parseInt($(this).attr('data-framesec')) > sec) }).fadeOut(500);
-	  $("#blackboard .fragment").filter(function(){
-		  var removed = parseInt($(this).attr('data-removedsec'));
-		  removed = (removed!=undefined && removed < sec);
-		  return (parseInt($(this).attr('data-framesec')) <= sec && !removed)}).fadeIn(500);
-	  $("#blackboard-time span").text(sec_to_time_string(sec));
-	  blackboard_paused = true;
+	  rewind_blackboard_to(sec);
   });
   $('#gallery').on('mouseenter mouseleave', '.fragment', function() {
 	  var sec = $(this).attr('data-framesec');
@@ -88,22 +92,31 @@ $(document).ready(function() {
 	  chart = nv.models.historicalBarChart();
 	  chart
 		.margin({left: 0, bottom: 0, right:0, top:0})
+	    .height(100)
+		.forceY([-1000,1000])
 		  // .useInteractiveGuideline(true)
-		  .duration(250)
+		.duration(250)
+	    // .tooltip(true)
 	    // .tooltip(function(key, x, y, e, graph) {
 			// return '<h3>' + key + '</h3>' +
 				// '<p>' +  y + ' on ' + x + '</p>';
 		// })
 	  ;
 
+	 chart.tooltip.contentGenerator(function (d) {
+          return `<div style="margin:3px">Blackboard activity at ${sec_to_time_string(d.data.x*60)}</div>`;
+        })
+
+	 chart.bars.dispatch.on("elementClick", function(e)  {
+		 // console.log(e.data.x);
+		 rewind_blackboard_to(parseInt(e.data.x*60))
+
+	 });
 	  // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
 	  chart.xAxis
 	      .axisLabel('Time')
 		  .tickFormat(function(d, i){
-			  // console.log([d,i])
-               var hour  = Math.floor(d/60%60)
-	    	var min = Math.floor(d%60);
-			  return (hour < 10 ? "0"+ hour : hour)+ ":"+ (min < 10 ? "0" + min : min)
+			  return sec_to_time_string(d*60);
 		  });
 
 	  chart.showXAxis(false);
