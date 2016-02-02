@@ -23,7 +23,10 @@ def get_image_stream(url=None):
     else:
         url = urllib.unquote_plus(url)
     print 'got url', url
-    if url.startswith('file://'):
+    if url == 'demo':
+        stream = '/home/ubuntu/rubakov1.mp4'
+        video = None
+    elif url.startswith('file://'):
         stream = url.replace('file://','')
         video = None
     else:
