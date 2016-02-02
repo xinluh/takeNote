@@ -21,28 +21,11 @@
   </head>
 
   <body class='with-3d-shadow with-transitions'>
-
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">take<i>Note</i></a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-        </div><!--/.navbar-collapse -->
-      </div>
-    </nav>
-
-    <!-- Main jumbotron for a primary marketing message or call to action -->
+	{% with active_page = "home" %}{% include 'navbar.html' %}{% endwith %}
     <div class="jumbotron">
       <div class="container">
 
-		<form class="form-signin">
+		<!-- <form class="form-signin"> -->
 		  <h1> take<i>Note</i> </h1>
 		  <h2> CliffNote for Video Lectures </h2>
 		  <br/><br/>
@@ -52,10 +35,10 @@
 				 title="Videos with stable camera, consistent lighting, and high contrast between chalk and blackbloard work the best"
 				 placeholder="https://www.youtube.com/watch?v=u--DXkNp4Qs"
 				 required autofocus value="https://www.youtube.com/watch?v=XsqtPhra2f0">
-		</form>
 		<br>
         <p><a class="btn btn-primary btn-lg" role="button" id="gobtn">CliffNote It! &raquo;</a>
 		</p>
+		<!-- </form> -->
       </div>
     </div>
 

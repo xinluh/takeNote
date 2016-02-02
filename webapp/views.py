@@ -15,6 +15,10 @@ import utils, img_proc_utils, model
 def index():
     return render_template('main.html')
 
+@app.route('/slides')
+def slides():
+    return render_template('slides.html')
+    
 @app.route('/getImageStream')
 @app.route('/getImageStream/<path:url>')
 def get_image_stream(url=None):
