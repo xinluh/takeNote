@@ -98,13 +98,17 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
 
         for blob in past_blobs[:]:
             if len(blob.get('removed_changed_frac',[])) >= stability_threshold:
-                if np.median(blob['removed_changed_frac']) > 0.4: # erasure seems stable
+                # if np.median(blob['removed_changed_frac']) < 0.4: # erasure seems stable
+                fracs = np.array(blob['removed_changed_frac'])
+                # second largest unchanged fraction is < 0.4, so lots seem to have been changed...
+                if fracs[fracs.argsort()[-2:][0]] < 0.4: 
+                    print blob['sec'], np.median(blob['removed_changed_frac']) 
                     try:
                         past_blobs.remove(blob)
                         yield 'erased_blob', blob
                     except Exception, e:
                         print e
-                        print blob
+                        print int(blob['sec']),blob['left_corner']
                     # todo rewind?
                     # print 'frame reset at', blob['removed_at_sec']
                     base_frame = [blob['removed_at_frame']] # reset base frame 
@@ -114,11 +118,11 @@ def find_text_in_video(frame_iterator, find_text_in_frame_func, stability_thresh
         for blob in past_blobs:
             b = blob.get('blob_bw', img_proc_utils.otsu_thresholded(blob['blob']))
             x, y = blob['left_corner']
-            current_blob_neg = ~(img_proc_utils.otsu_thresholded(frame[x:x+b.shape[0],y:y+b.shape[1]]).astype(np.bool))
-            frac = img_proc_utils.unchanged_fraction(b, current_blob_neg, white_overweight=2)
+            current_blob = (img_proc_utils.otsu_thresholded(frame[x:x+b.shape[0],y:y+b.shape[1]]).astype(np.bool))
+            frac = img_proc_utils.unchanged_fraction(b, current_blob, white_overweight=1/2.)
             if 'removed_at_sec' in blob: # pending erasure
                 blob['removed_changed_frac'].append(frac)
-            elif frac > 0.4:
+            elif frac < 0.4:
                 blob['removed_at_sec'] = int(sec)
                 blob['removed_at_frame'] = frame
                 blob['removed_changed_frac'] = [frac]

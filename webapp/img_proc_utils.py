@@ -81,7 +81,7 @@ def unchanged_fraction(blob_bw, blob2_bw, white_overweight=1.):
 
     white_frac = 1.*blob2_bw[np.logical_and(blob_bw > 0,blob2_bw > 0)].size / blob_bw[blob_bw > 0].size
     black_frac = 1.*blob2_bw[np.logical_and(blob2_bw == 0,blob_bw == 0)].size / blob_bw[blob_bw == 0].size
-    return white_frac**(1/white_overweight) * black_frac
+    return white_frac**(1./white_overweight) * black_frac
 
 def shared_fraction(blob,blob2):
     ''' Return fraction of white pixels are shared between the two blobs, taking into account the different location of the blobs'''
