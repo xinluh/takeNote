@@ -98,11 +98,6 @@ $(document).ready(function() {
 		.forceY([-1000,1000])
 		  // .useInteractiveGuideline(true)
 		.duration(250)
-	    // .tooltip(true)
-	    // .tooltip(function(key, x, y, e, graph) {
-			// return '<h3>' + key + '</h3>' +
-				// '<p>' +  y + ' on ' + x + '</p>';
-		// })
 	  ;
 
 	 chart.tooltip.contentGenerator(function (d) {
@@ -159,7 +154,7 @@ $(document).ready(function() {
 				var container = $('#gallery');
 				console.log([container[0].scrollWidth - container.scrollLeft(), container.outerWidth()])
 				// only auto scroll if it is already at the end (else the user is probably trying to scroll so in that case don't autoscroll )
-				if (container[0].scrollWidth - container.scrollLeft()- 300 < container.outerWidth()) {
+				if (container[0].scrollWidth - container.scrollLeft() < container.outerWidth()) {
 					container.animate({
 						scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
 					});
