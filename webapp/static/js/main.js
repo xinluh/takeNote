@@ -112,7 +112,7 @@ $(document).ready(function() {
 		  values: [],
 		  color: "#337ab7",
 	  }]
-	  chartData = d3.select('#test1').datum(time_hist)
+	  chartData = d3.select('#activity-graph').datum(time_hist)
 	  chartData.transition().call(chart);
 
 	  nv.utils.windowResize(chart.update);
