@@ -33,6 +33,7 @@ $(document).ready(function() {
 
   var current_video_length = 0;
   var current_video_url = null;
+  var current_blackboard_sec = 0;
   var blackboard_paused = false;
   var chart = null; // nvd3 chart
   var chartData;
@@ -60,6 +61,26 @@ $(document).ready(function() {
        return (parseInt($(this).attr('data-framesec')) <= sec && !removed)}).fadeIn(500);
      $("#blackboard-time span").text(sec_to_time_string(sec));
      blackboard_paused = true;
+	 current_blackboard_sec = sec;
+  }
+
+  function download_canvas(sec) {
+	  var canvas = document.getElementById("canvas");
+      var context = canvas.getContext("2d");
+	  context.fillStyle = "black";
+	  context.fillRect(0, 0, canvas.width, canvas.height);
+	   $("#blackboard .fragment").each(function(){
+		   var removed = parseInt($(this).attr('data-removedsec'));
+		   removed = (removed!=undefined && removed < sec);
+		   if (parseInt($(this).attr('data-framesec')) <= sec && !removed) {
+			   var image = new Image();
+               var elem = $(this);
+			   image.onload = function() {
+	   			   context.drawImage(image,elem.css('margin-left').replace('px',''),elem.css('margin-top').replace('px',''));
+			   };
+			   image.src = $(this).find("img").attr('src')
+		   }});
+      // window.open(canvas.toDataURL("image/png"));
   }
 
   $('#blackboard').on('click', '.fragment', function() {
@@ -73,6 +94,13 @@ $(document).ready(function() {
   $('#gallery').on('mouseenter mouseleave', '.fragment', function() {
 	  var sec = $(this).attr('data-framesec');
 	  $('#blackboard').find('[data-framesec="'+ sec + '"]').toggleClass('fragment-hover');
+  });
+  $("#saveBtn").click(function() {
+	  download_canvas(current_blackboard_sec);
+  })
+  $("#saveBtn").hide()
+  $("#blackboard").hover(function(){
+	  $("#saveBtn").toggle()
   });
 
   function nvd3_update(hist) {
@@ -98,11 +126,6 @@ $(document).ready(function() {
 		.forceY([-1000,1000])
 		  // .useInteractiveGuideline(true)
 		.duration(250)
-	    // .tooltip(true)
-	    // .tooltip(function(key, x, y, e, graph) {
-			// return '<h3>' + key + '</h3>' +
-				// '<p>' +  y + ' on ' + x + '</p>';
-		// })
 	  ;
 
 	 chart.tooltip.contentGenerator(function (d) {
@@ -142,6 +165,7 @@ $(document).ready(function() {
 	    var frame = "data:image/png;base64,"+data.frame;
 	    var title = data.sec + " " + data.proba;
 	    var time = sec_to_time_string(data.sec);
+	    current_blackboard_sec = data.sec;
 	    $("#gallery-placeholder").hide();
 	    var el_gallery = null;
 	    if (data.size[1]*data.size[0] > 600) {
@@ -159,7 +183,7 @@ $(document).ready(function() {
 				var container = $('#gallery');
 				console.log([container[0].scrollWidth - container.scrollLeft(), container.outerWidth()])
 				// only auto scroll if it is already at the end (else the user is probably trying to scroll so in that case don't autoscroll )
-				if (container[0].scrollWidth - container.scrollLeft()- 300 < container.outerWidth()) {
+				if (container[0].scrollWidth - container.scrollLeft() < container.outerWidth()) {
 					container.animate({
 						scrollLeft: el_gallery.offset().left - container.offset().left + container.scrollLeft()
 					});
