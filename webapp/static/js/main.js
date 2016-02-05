@@ -1,16 +1,16 @@
 $(document).ready(function() {
-  $('#video-container').hide()
+  $('#video').hide()
 
   var source = null;
   $('#gobtn').click(function() {
 	  // if (source != null) {source.close();}
-	  $('#video-container').show();
+	  $('#video').show();
 	  $("#blackboard .fragment").remove();
 	  $("#gallery .fragment").remove();
 	  // $("#blackboard-container").hide()
 	  
 
-	  location.href = "#video-container";
+	  location.href = "#video";
 	  $("#video-title").html("Loading video...");
 	  $("#video-desc").html("")
 	  $("#video-author").html("")
