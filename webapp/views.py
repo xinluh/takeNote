@@ -10,6 +10,8 @@ from collections import defaultdict
 import numpy as np
 import pafy
 import utils, img_proc_utils, model
+from redis import StrictRedis
+
 
 @app.route('/')
 @app.route('/index')
@@ -24,10 +26,20 @@ def slides():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')    
-    
+
+@app.route('/num_processes')
+def num_processes():
+    r = StrictRedis('localhost')
+    # r.incr('counter')
+    return r.get('counter')
+
 @app.route('/getImageStream')
 @app.route('/getImageStream/<path:url>')
 def get_image_stream(url=None):
+    r = StrictRedis('localhost')
+    if int(r.get('counter')) >= 3: # double checking - javascript should not be calling this anyways
+        return 'error'
+
     if not url: # test
         url = 'https://www.youtube.com/watch?v=XsqtPhra2f0'
     else:
@@ -52,61 +64,66 @@ def server_event_msg(data, mtype='message'):
     return 'event: %s\ndata: %s\n\n' % (mtype,json.dumps(data))
 
 def stream_frames(stream, pafy_video = None):
-    demo_diff = 0
-    video_length = pafy_video.length if pafy_video else (5412-demo_diff if 'rubakov1' in stream else 5000)
-    if pafy_video:
-        yield server_event_msg({'video_length': pafy_video.length,
-                                'video_title': pafy_video.title,
-                                'video_desc': pafy_video.description,
-                                'video_author': pafy_video.author,
-                                'video_url': pafy_video.url},
-                               'onstart')
-    else:
-        if 'rubakov1' in stream:
-            demo_diff = 4*60 # the demo video is four min in
-            yield server_event_msg({"video_author": "Galileo Galilei",
-                                    "video_length": 5412-demo_diff,
-                                    "video_title": "Early Universe - V. Rubakov - lecture 1/9",
-                                    "video_url": "https://www.youtube.com/watch?v=XsqtPhra2f0",
-                                    "video_desc": "GGI lectures on the theory of fundamental interactions, January 2015\nhttp://heidi.pd.infn.it/html/GGI/index.php"},
+    r = StrictRedis('localhost')
+    try:
+        r.incr('counter') # keep track of how many processes are running
+        demo_diff = 0
+        video_length = pafy_video.length if pafy_video else (5412-demo_diff if 'rubakov1' in stream else 5000)
+        if pafy_video:
+            yield server_event_msg({'video_length': pafy_video.length,
+                                    'video_title': pafy_video.title,
+                                    'video_desc': pafy_video.description,
+                                    'video_author': pafy_video.author,
+                                    'video_url': pafy_video.url},
                                    'onstart')
         else:
-            yield server_event_msg({'video_length': 5000,'video_title': stream }, 'onstart')
-            
-
-    hist = defaultdict(float)
-    it = utils.find_text_in_video(
-             utils.get_frames_from_stream(stream,3),
-             lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
-
-    for dtype, data in it:
-        if dtype == 'new_frame':
-            yield server_event_msg({'sec': int(data[0])},'onprogress')
-        elif dtype == 'new_blob':
-            yield server_event_msg({'img': utils.img_to_base64_bytes(data['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
-                                             'sec': int(data['sec']+demo_diff),
-                                             'proba': round(data['proba'],2),
-                                             'left_corner': data['left_corner'],
-                                             'size': data['blob'].shape,
-                                             'n_sameblobs': data['n_sameblobs'],
-                                             # 'frame': utils.img_to_base64_bytes(data['frame'])
-                                         })
-            if 'blob_bw' not in data: data['blob_bw'] = img_proc_utils.otsu_thresholded(data['blob'])
-            hist[(int(data['sec']+demo_diff)/60)] += np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
-            
-            # print hist, {'hist': [{'x': k, 'y': v} for k,v in hist.iteritems()]}
-            # yield server_event_msg({'hist': [{'x': k, 'y': int(v/10.)} for k,v in hist.iteritems()]}, 'onhist')
-            yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
-        elif dtype == "erased_blob":
-            yield server_event_msg({'sec': int(data['sec']+demo_diff),
-                                    'removed_sec': int(data['removed_at_sec']+demo_diff),
-                                    'left_corner': data['left_corner']},
-                                   'onerasure')
-            hist[(int(data['removed_at_sec']+demo_diff)/60)] -= np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
-            yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
-
-    yield server_event_msg({'end':True}, 'onend')
-    raise StopIteration
+            if 'rubakov1' in stream:
+                demo_diff = 4*60 # the demo video is four min in
+                yield server_event_msg({"video_author": "Galileo Galilei",
+                                        "video_length": 5412-demo_diff,
+                                        "video_title": "Early Universe - V. Rubakov - lecture 1/9",
+                                        "video_url": "https://www.youtube.com/watch?v=XsqtPhra2f0",
+                                        "video_desc": "GGI lectures on the theory of fundamental interactions, January 2015\nhttp://heidi.pd.infn.it/html/GGI/index.php"},
+                                       'onstart')
+            else:
+                yield server_event_msg({'video_length': 5000,'video_title': stream }, 'onstart')
+                
+     
+        hist = defaultdict(float)
+        it = utils.find_text_in_video(
+                 utils.get_frames_from_stream(stream,3),
+                 lambda frame,base_frames: utils.find_text_in_frame(frame, base_frames, proba_threshold=0.5))
+     
+        for dtype, data in it:
+            if dtype == 'new_frame':
+                yield server_event_msg({'sec': int(data[0])},'onprogress')
+            elif dtype == 'new_blob':
+                yield server_event_msg({'img': utils.img_to_base64_bytes(data['blob']), #utils.img_to_base64_bytes(255-np.nan_to_num(abs(blob))),
+                                                 'sec': int(data['sec']+demo_diff),
+                                                 'proba': round(data['proba'],2),
+                                                 'left_corner': data['left_corner'],
+                                                 'size': data['blob'].shape,
+                                                 'n_sameblobs': data['n_sameblobs'],
+                                                 # 'frame': utils.img_to_base64_bytes(data['frame'])
+                                             })
+                if 'blob_bw' not in data: data['blob_bw'] = img_proc_utils.otsu_thresholded(data['blob'])
+                hist[(int(data['sec']+demo_diff)/60)] += np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
+                
+                # print hist, {'hist': [{'x': k, 'y': v} for k,v in hist.iteritems()]}
+                # yield server_event_msg({'hist': [{'x': k, 'y': int(v/10.)} for k,v in hist.iteritems()]}, 'onhist')
+                yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
+            elif dtype == "erased_blob":
+                yield server_event_msg({'sec': int(data['sec']+demo_diff),
+                                        'removed_sec': int(data['removed_at_sec']+demo_diff),
+                                        'left_corner': data['left_corner']},
+                                       'onerasure')
+                hist[(int(data['removed_at_sec']+demo_diff)/60)] -= np.count_nonzero(data['blob_bw'][data['blob_bw']>0])
+                yield server_event_msg({'hist': [{'x': i, 'y':  hist.get(i,0)} for i in xrange(video_length/60)]}, 'onhist')
+     
+        yield server_event_msg({'end':True}, 'onend')
+        raise StopIteration
+    finally:
+        r.decr('counter')        
     
 def stream_frames2(stream, pafy_video = None):
     base_frame_sec = -1

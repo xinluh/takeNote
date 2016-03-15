@@ -18,13 +18,25 @@ $(document).ready(function() {
 	  $('#blackboard-time span').text("00:00:00");
 	  blackboard_paused = false;
 
-      source = new EventSource('/getImageStream/'+encodeURIComponent($("#videoUrl").val()));
-	  source.addEventListener('onstart', eventsource_onstart, false);
-	  source.addEventListener('onprogress', eventsource_onprogress, false);
-	  source.addEventListener('onend', eventsource_onend, false);
-	  source.addEventListener('onerasure', eventsource_onerasure, false);
-	  source.addEventListener('onhist', eventsource_onhist, false);
-	  source.onmessage = eventsource_onmessage;
+	  $.get('/num_processes',function(data){
+		  if (parseInt(data) >= 3) {
+			  $('#video').hide()
+			  alert('Sorry too many people is accessing this at the same time. Try again later!')
+			  return
+		  }
+          source = new EventSource('/getImageStream/'+encodeURIComponent($("#videoUrl").val()));
+    	  source.addEventListener('onstart', eventsource_onstart, false);
+    	  source.addEventListener('onprogress', eventsource_onprogress, false);
+    	  source.addEventListener('onend', eventsource_onend, false);
+    	  source.addEventListener('onerasure', eventsource_onerasure, false);
+    	  source.addEventListener('onhist', eventsource_onhist, false);
+    	  source.onmessage = eventsource_onmessage;
+    	  source.onerror = function(e) {
+    		console.log(e)
+          };
+
+	  })
+
 	  if (chart == null) {nv.addGraph(nvd3_setup);}
   });
   $('#stopbtn').click(function() {
