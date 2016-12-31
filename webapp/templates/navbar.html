@@ -1,7 +1,7 @@
 {% set navigation_bar = [
     ('/', 'home', 'Home'),
-    ('/slides', 'slides', 'About'),
-    ('http://52.8.121.155', 'mirror', 'Mirror')
+    ('/slides', 'slides', 'Slides'),
+    ('http://insightdatascience.com/blog/takenote.html', 'About', 'About')
 ] -%}
 {% set active_page = active_page|default('index') -%}
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -18,9 +18,13 @@
 	<div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 		{% for href, id, caption in navigation_bar %}
-		<li{% if id == active_page %} class="active"{% endif %}>
-		  <a href="{{ href|e }}">{{ caption|e }}</a></li>
+		<li{% if id == active_page %} class="active"{% endif %} id=nav-{{id}}>
+		  <a href="{{ href|e }}">{{ caption|safe }}</a></li>
 		{% endfor %}
+      </ul>
+	  <ul class="nav navbar-nav navbar-right">
+		<li id="nav-linkedin">
+		  <a href="https://www.linkedin.com/in/xinluh"><img src="https://static.licdn.com/scds/common/u/images/logos/linkedin/logo_in_nav_44x36.png"></a></li>
       </ul>
     </div><!--/.nav-collapse -->
   </div>

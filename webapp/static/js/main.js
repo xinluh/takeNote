@@ -19,7 +19,7 @@ $(document).ready(function() {
 	  blackboard_paused = false;
 
 	  $.get('/num_processes',function(data){
-		  if (parseInt(data) >= 3) {
+		  if (parseInt(data) > 3) {
 			  $('#video').hide()
 			  alert('Sorry too many people is accessing this at the same time. Try again later!')
 			  return

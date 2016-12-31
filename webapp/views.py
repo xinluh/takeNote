@@ -37,7 +37,7 @@ def num_processes():
 @app.route('/getImageStream/<path:url>')
 def get_image_stream(url=None):
     r = StrictRedis('localhost')
-    if int(r.get('counter')) >= 3: # double checking - javascript should not be calling this anyways
+    if int(r.get('counter')) > 3: # double checking - javascript should not be calling this anyways
         return 'error'
 
     if not url: # test
