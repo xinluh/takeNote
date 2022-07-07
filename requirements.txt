@@ -44,7 +44,7 @@ python-dateutil==1.5
 python-debian==0.1.21-nmu2ubuntu2
 pytz==2012c
 redis==2.10.5
-requests==2.2.1
+requests==2.20.0
 scikit-image==0.11.3
 scikit-learn==0.17
 scipy==0.13.3
